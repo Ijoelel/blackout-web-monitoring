@@ -1,4 +1,3 @@
-import time
 import numpy as np
 import torch
 import socketio
@@ -7,7 +6,7 @@ from fastapi import FastAPI
 import uvicorn
 
 from lib.pred import LSTMPredictor, features
-from lib.generator import generate_normal_data, maybe_anomaly
+from lib.generator import generate_normal_data, maybe_anomaly, flatten_for_model
 
 # --- Socket.IO server (ASGI mode) ---
 sio = socketio.AsyncServer(
@@ -41,8 +40,8 @@ async def simulation_loop():
     while True:
         datapoint = generate_normal_data(t)
         datapoint = maybe_anomaly(datapoint)
-        print(datapoint)
-        window.append(datapoint)
+        flattened = flatten_for_model(datapoint)
+        window.append(flattened)
         if len(window) > window_size:
             window.pop(0)
 
