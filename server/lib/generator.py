@@ -1,94 +1,196 @@
-# generator_ship.py
-import math, random, datetime
+import random
+from copy import deepcopy
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Optional
 
-class SimpleShipSim:
-    """Simulasi kapal sederhana: startup -> stable -> (kadang) bad_env/high_load.
-       Korelasi: wave→roll/pitch→vibration; high_load→load naik.
-    """
-    def __init__(self, feature_cols, seed=42):
-        self.feature_cols = feature_cols
-        self.rng = random.Random(seed)
-        self.t = 0
-        self.mode = "startup"
-        self.phase = 0.0
-        self.num_online = 2
+import numpy as np
 
-    def _gens_tuple(self):
-        g_online = [0,0,0,0]
-        for i in range(self.num_online):
-            g_online[i] = 1
 
-        base_load = 600.0 if self.mode == "startup" else 900.0
-        if self.mode == "high_load": base_load *= 1.5
+BASE_TIMESTAMP = datetime(2025, 9, 15, 21, 30, tzinfo=timezone.utc)
 
-        gens = []
-        for i in range(4):
-            on = g_online[i]
-            if on:
-                load = base_load + self.rng.gauss(0, 40)
-                freq = 50.0 + self.rng.gauss(0, 0.01)
-                lube = 1.5 + 0.02*(load/1000.0) + self.rng.gauss(0, 0.02)
-                cool = 35 + 0.04*(load/10.0) + self.rng.gauss(0, 0.5)
-                exhaust = 180 + 0.2*(load/1.0) + self.rng.gauss(0, 5)
-                vib = 0.7 + self.last_roll*0.15 + self.rng.gauss(0, 0.03)
-            else:
-                load=freq=lube=cool=exhaust=vib=0.0
-            gens.append((on, load, freq, lube, cool, exhaust, vib))
-        return gens
 
-    def step(self):
-        self.t += 1
-        # state transitions
-        if self.mode == "startup":
-            if self.t > 60:
-                self.mode = "stable"; self.num_online = 3
-        elif self.mode == "stable":
-            r = self.rng.random()
-            if r < 0.03: self.mode = "high_load"; self.num_online = 3
-            elif r < 0.08: self.mode = "bad_env"
-        else:  # bad_env / high_load
-            if self.rng.random() < 0.05:
-                self.mode = "stable"; self.num_online = 3
+def _round(value: float, digits: int = 2) -> float:
+    return float(np.round(value, digits))
 
-        # environment
-        self.phase += 0.1
-        wave = max(0.0, 1.0 + 0.5*math.sin(self.phase) + self.rng.gauss(0, 0.05))
-        wind = max(0.0, 8.0 + 2.0*math.sin(self.phase/3) + self.rng.gauss(0, 0.3))
-        if self.mode == "bad_env":
-            wave *= 2.0; wind *= 1.8
 
-        roll  = 0.6*wave + self.rng.gauss(0, 0.1)
-        pitch = 0.4*wave + self.rng.gauss(0, 0.08)
-        self.last_roll = roll
+def _make_generator_payload(base_load: float, base_freq: float, t: int) -> Dict[str, float]:
+    phase = t / 30
+    load_kw = base_load + 15 * np.sin(phase) + np.random.normal(0, 2)
+    frequency_hz = base_freq + 0.02 * np.sin(phase / 2) + np.random.normal(0, 0.005)
+    lube_oil_pressure_bar = 5.2 + 0.15 * np.sin(phase / 3) + np.random.normal(0, 0.05)
+    coolant_temperature_celsius = 84.5 + 0.9 * np.sin(phase / 2.5) + np.random.normal(0, 0.2)
+    exhaust_gas_temperature_celsius = 425 + 6 * np.sin(phase / 1.8) + np.random.normal(0, 1.5)
+    vibration_level_mm_s = 3.4 + 0.2 * np.sin(phase / 4) + np.random.normal(0, 0.05)
 
-        # build dict
-        d = {
-            "num_generators_online": self.num_online,
-            "wave_height_meters": wave,
-            "wind_speed_knots": wind,
-            "ship_roll_degrees": roll,
-            "ship_pitch_degrees": pitch,
-        }
+    return {
+        "load_kw": _round(load_kw, 1),
+        "frequency_hz": _round(frequency_hz, 2),
+        "lube_oil_pressure_bar": _round(lube_oil_pressure_bar, 2),
+        "coolant_temperature_celsius": _round(coolant_temperature_celsius, 1),
+        "exhaust_gas_temperature_celsius": _round(exhaust_gas_temperature_celsius, 1),
+        "vibration_level_mm_s": _round(vibration_level_mm_s, 2),
+    }
 
-        gens = self._gens_tuple()
-        total_kw = 0.0
-        for i,(on,load,f,lube,cool,exh,vib) in enumerate(gens, start=1):
-            d[f"g{i}_online"] = float(on)
-            d[f"g{i}_load_kw"] = load;           total_kw += load
-            d[f"g{i}_frequency_hz"] = f
-            d[f"g{i}_lube_oil_pressure_bar"] = lube
-            d[f"g{i}_coolant_temperature_celsius"] = cool
-            d[f"g{i}_exhaust_gas_temperature_celsius"] = exh
-            d[f"g{i}_vibration_level_mm_s"] = vib
 
-        d["msb_total_active_power_kw"] = total_kw
-        d["msb_busbar_voltage_v"] = 690.0 + self.rng.gauss(0, 2.0) - 0.02*roll
+def generate_normal_data(t: int) -> Dict[str, object]:
+    """Generate contextual ship power data following the new JSON structure."""
+    timestamp = BASE_TIMESTAMP + timedelta(seconds=t)
 
-        # isi default untuk kolom yang mungkin ada di feature list tapi tidak dihitung di atas
-        for c in self.feature_cols:
-            if c not in d:
-                d[c] = 0.0
+    generator_payloads: Dict[str, Optional[Dict[str, float]]] = {
+        "generator_1": _make_generator_payload(2150, 59.95, t),
+        "generator_2": _make_generator_payload(2220, 59.94, t + 7),
+        "generator_3": _make_generator_payload(2180, 59.96, t + 13),
+        "generator_4": None,
+    }
 
-        d["timestamp"] = datetime.datetime.utcnow().isoformat() + "Z"
-        d["mode"] = self.mode
-        return d
+    total_active_power = sum(
+        payload["load_kw"] for payload in generator_payloads.values() if payload is not None
+    )
+    busbar_voltage = 6590 + 6 * np.sin(t / 40) + np.random.normal(0, 1)
+
+    data = {
+        "timestamp": timestamp.replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "main_features": generator_payloads,
+        "distribution_features": {
+            "msb_total_active_power_kw": _round(total_active_power, 1),
+            "msb_busbar_voltage_v": _round(busbar_voltage, 1),
+        },
+        "contextual_features": {
+            "system_status": {
+                "num_generators_online": 3,
+                "pms_mode": "Sea_Rough",
+                "heavy_consumers_status": {
+                    "bow_thruster_1": "ACTIVE_LOW",
+                    "stabilizers": "ACTIVE",
+                },
+            },
+            "maintenance_quality": {
+                "generator_1_lube_oil_running_hours": 1520 + int(5 * np.sin(t / 80)),
+                "generator_2_lube_oil_running_hours": 850 + int(4 * np.sin(t / 60)),
+                "generator_3_lube_oil_running_hours": 2100 + int(6 * np.sin(t / 75)),
+                "active_fuel_tank_cat_fines_ppm": 15 + int(np.random.normal(0, 1)),
+            },
+            "environmental": {
+                "wave_height_meters": _round(4.5 + 0.2 * np.sin(t / 50), 2),
+                "wave_period_seconds": _round(8.0 + 0.1 * np.cos(t / 35), 2),
+                "wind_speed_knots": _round(35 + 1.2 * np.sin(t / 45) + np.random.normal(0, 0.5), 1),
+                "wind_direction_degrees": 280,
+                "ocean_current_speed_knots": _round(1.5 + 0.1 * np.sin(t / 55), 2),
+                "ship_pitch_degrees": _round(4.2 + 0.3 * np.sin(t / 40), 2),
+                "ship_roll_degrees": _round(5.5 + 0.4 * np.cos(t / 37), 2),
+            },
+        },
+    }
+
+    return data
+
+
+def maybe_anomaly(data: Dict[str, object]) -> Dict[str, object]:
+    mutated = deepcopy(data)
+
+    if random.random() >= 0.05:
+        return mutated
+
+    anomaly_type = random.choice([
+        "load_spike",
+        "frequency_drop",
+        "oil_pressure_drop",
+        "voltage_sag",
+    ])
+    active_generators = [
+        key for key, payload in mutated["main_features"].items() if payload is not None
+    ]
+    target_key = random.choice(active_generators)
+    payload = mutated["main_features"][target_key]
+
+    if not isinstance(payload, dict):
+        return mutated
+
+    if anomaly_type == "load_spike":
+        payload["load_kw"] = _round(payload["load_kw"] * 1.2, 1)
+    elif anomaly_type == "frequency_drop":
+        payload["frequency_hz"] = _round(payload["frequency_hz"] - random.uniform(0.5, 1.0), 2)
+    elif anomaly_type == "oil_pressure_drop":
+        payload["lube_oil_pressure_bar"] = _round(
+            max(0.5, payload["lube_oil_pressure_bar"] - random.uniform(1.5, 2.5)),
+            2,
+        )
+    elif anomaly_type == "voltage_sag":
+        distribution = mutated["distribution_features"]
+        distribution["msb_busbar_voltage_v"] = _round(
+            distribution["msb_busbar_voltage_v"] - random.uniform(150, 250), 1
+        )
+        distribution["msb_total_active_power_kw"] = _round(
+            distribution["msb_total_active_power_kw"] * 0.85, 1
+        )
+
+    return mutated
+
+
+def flatten_for_model(data: Dict[str, object]) -> List[float]:
+    distribution = data["distribution_features"]
+    busbar_voltage = distribution["msb_busbar_voltage_v"]
+    total_power = distribution["msb_total_active_power_kw"]
+
+    generators = [
+        payload
+        for payload in data["main_features"].values()
+        if isinstance(payload, dict)
+    ]
+
+    if not generators:
+        generators = [
+            {
+                "load_kw": 0.0,
+                "frequency_hz": 60.0,
+                "lube_oil_pressure_bar": 0.0,
+                "coolant_temperature_celsius": 0.0,
+            }
+        ]
+
+    avg_frequency = float(np.mean([gen["frequency_hz"] for gen in generators]))
+    avg_oil_temp = float(
+        np.mean([gen["coolant_temperature_celsius"] for gen in generators])
+    )
+    avg_oil_pressure = float(
+        np.mean([gen["lube_oil_pressure_bar"] for gen in generators])
+    )
+
+    currents = [
+        (gen["load_kw"] * 1000) / (np.sqrt(3) * busbar_voltage)
+        if busbar_voltage
+        else 0.0
+        for gen in generators
+    ]
+    while len(currents) < 3:
+        currents.append(0.0)
+
+    pf = 0.95
+    genset_rpm = avg_frequency * 60
+
+    maintenance = data["contextual_features"]["maintenance_quality"]
+    environmental = data["contextual_features"]["environmental"]
+
+    battery_soc = max(30.0, 90.0 - maintenance["active_fuel_tank_cat_fines_ppm"])
+    room_temp = 24.0 + 0.5 * environmental["wave_height_meters"]
+    humidity = 65.0 + 0.2 * environmental["wind_speed_knots"]
+
+    flattened = [
+        busbar_voltage * 0.99,
+        busbar_voltage,
+        busbar_voltage * 1.01,
+        currents[0],
+        currents[1],
+        currents[2],
+        avg_frequency,
+        total_power,
+        pf,
+        genset_rpm,
+        battery_soc,
+        avg_oil_temp,
+        avg_oil_pressure,
+        room_temp,
+        humidity,
+    ]
+
+    return [float(round(value, 3)) for value in flattened]

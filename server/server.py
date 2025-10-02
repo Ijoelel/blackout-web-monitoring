@@ -1,7 +1,12 @@
-# server.py
-import asyncio, os, uvicorn, socketio
-from lib.generator import SimpleShipSim
-from lib.pred import AnomalyPredictor
+import numpy as np
+import torch
+import socketio
+import asyncio
+from fastapi import FastAPI
+import uvicorn
+
+from lib.pred import LSTMPredictor, features
+from lib.generator import generate_normal_data, maybe_anomaly, flatten_for_model
 
 # ---------- Socket.IO (ASGI) ----------
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
@@ -65,13 +70,37 @@ async def connect(sid, environ):
 
 @sio.event
 async def disconnect(sid):
-    global producer_task
-    clients.discard(sid)
-    print("Client disconnected:", sid, " total:", len(clients))
-    # stop loop kalau tidak ada klien
-    if not clients and producer_task and not producer_task.done():
-        producer_task.cancel()
-        print("Producer loop stopped (no clients).")
+    print("Client disconnected:", sid)
+
+# --- Background task: simulation loop ---
+async def simulation_loop():
+    print("🚢 Realtime simulation running...")
+    t = 0
+    while True:
+        datapoint = generate_normal_data(t)
+        datapoint = maybe_anomaly(datapoint)
+        flattened = flatten_for_model(datapoint)
+        window.append(flattened)
+        if len(window) > window_size:
+            window.pop(0)
+
+        if len(window) == window_size:
+            x = torch.tensor([np.array(window, dtype=np.float32)], dtype=torch.float32)
+            with torch.no_grad():
+                y = model(x)
+            pred = y.item()
+            if pred > 0.4:
+                print("BLACKOUT!!!!!!!!!!!!!!")
+
+        # ✅ Broadcast to all connected clients
+        await sio.emit("test", datapoint)
+
+        t += 1
+        await asyncio.sleep(1)
+
+@app.on_event("startup")
+async def start_background_task():
+    asyncio.create_task(simulation_loop())
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
