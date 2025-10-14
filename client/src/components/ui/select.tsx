@@ -1,10 +1,13 @@
 'use client'
 
+
 import * as React from 'react'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 
+
 import { cn } from '@/lib/utils'
+
 
 function Select({
   ...props
@@ -12,17 +15,20 @@ function Select({
   return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 
+
 function SelectGroup({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />
 }
 
+
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
+
 
 function SelectTrigger({
   className,
@@ -49,6 +55,7 @@ function SelectTrigger({
     </SelectPrimitive.Trigger>
   )
 }
+
 
 function SelectContent({
   className,
@@ -85,6 +92,7 @@ function SelectContent({
   )
 }
 
+
 function SelectLabel({
   className,
   ...props
@@ -97,6 +105,7 @@ function SelectLabel({
     />
   )
 }
+
 
 function SelectItem({
   className,
@@ -122,6 +131,7 @@ function SelectItem({
   )
 }
 
+
 function SelectSeparator({
   className,
   ...props
@@ -134,6 +144,7 @@ function SelectSeparator({
     />
   )
 }
+
 
 function SelectScrollUpButton({
   className,
@@ -153,6 +164,7 @@ function SelectScrollUpButton({
   )
 }
 
+
 function SelectScrollDownButton({
   className,
   ...props
@@ -171,6 +183,7 @@ function SelectScrollDownButton({
   )
 }
 
+
 export {
   Select,
   SelectContent,
@@ -183,3 +196,6 @@ export {
   SelectTrigger,
   SelectValue,
 }
+
+
+

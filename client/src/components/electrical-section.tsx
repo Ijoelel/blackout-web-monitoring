@@ -3,19 +3,19 @@
 import { Zap, Battery, Activity, Radio } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import MetricCard from "@/components/metric-card"
-import { genHistory } from "@/lib/history"
-import { useLiveMetric } from "@/hooks/use-live-metric"
+import { useSocketData } from "@/hooks/use-socket-data"
 
 export default function ElectricalSection() {
-  const voltage = useLiveMetric({ base: 398, jitter: 2, min: 390, max: 410 })
-  const current = useLiveMetric({ base: 143, jitter: 3, min: 130, max: 160 })
-  const power = useLiveMetric({ base: 79, jitter: 1.5, min: 70, max: 90 })
-  const frequency = useLiveMetric({ base: 50.4, jitter: 0.15, min: 49.5, max: 51 })
+  const { electrical } = useSocketData()
+  const voltage = electrical.voltage ?? 398
+  const current = electrical.current ?? 143
+  const power = electrical.power ?? 79
+  const frequency = electrical.frequency ?? 50.4
 
-  const histVoltage = genHistory({ base: 398, jitter: 2 })
-  const histCurrent = genHistory({ base: 143, jitter: 3 })
-  const histPower = genHistory({ base: 79, jitter: 1.5, min: 0 })
-  const histFrequency = genHistory({ base: 50.4, jitter: 0.15 })
+  const histVoltage = electrical.voltageHistory ?? []
+  const histCurrent = electrical.currentHistory ?? []
+  const histPower = electrical.powerHistory ?? []
+  const histFrequency = electrical.frequencyHistory ?? []
 
   const isNormal =
     voltage >= 380 && voltage <= 420 && current <= 120 && power <= 100 && frequency >= 49.5 && frequency <= 50.5
@@ -42,7 +42,7 @@ export default function ElectricalSection() {
             warnAbove={420}
             critAbove={440}
             historyData={histVoltage}
-            chartTitle="Tegangan — 60 min"
+            chartTitle="Tegangan — 1 jam terakhir"
             yDomain={[350, 450]}
           />
           <MetricCard
@@ -55,7 +55,7 @@ export default function ElectricalSection() {
             warnAbove={120}
             critAbove={150}
             historyData={histCurrent}
-            chartTitle="Arus — 60 min"
+            chartTitle="Arus — 1 jam terakhir"
             yDomain={[0, 200]}
           />
           <MetricCard
@@ -68,7 +68,7 @@ export default function ElectricalSection() {
             warnAbove={100}
             critAbove={120}
             historyData={histPower}
-            chartTitle="Daya — 60 min"
+            chartTitle="Daya — 1 jam terakhir"
             yDomain={[0, 150]}
           />
           <MetricCard
@@ -83,7 +83,7 @@ export default function ElectricalSection() {
             warnAbove={50.5}
             critAbove={51}
             historyData={histFrequency}
-            chartTitle="Frekuensi — 60 min"
+            chartTitle="Frekuensi — 1 jam terakhir"
             yDomain={[48, 52]}
           />
         </div>
@@ -105,3 +105,5 @@ export default function ElectricalSection() {
     </Card>
   )
 }
+
+

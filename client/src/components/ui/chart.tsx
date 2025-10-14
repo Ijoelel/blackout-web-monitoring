@@ -1,12 +1,16 @@
 'use client'
 
+
 import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
 
+
 import { cn } from '@/lib/utils'
+
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const
+
 
 export type ChartConfig = {
   [k in string]: {
@@ -18,21 +22,27 @@ export type ChartConfig = {
   )
 }
 
+
 type ChartContextProps = {
   config: ChartConfig
 }
 
+
 const ChartContext = React.createContext<ChartContextProps | null>(null)
+
 
 function useChart() {
   const context = React.useContext(ChartContext)
+
 
   if (!context) {
     throw new Error('useChart must be used within a <ChartContainer />')
   }
 
+
   return context
 }
+
 
 function ChartContainer({
   id,
@@ -48,6 +58,7 @@ function ChartContainer({
 }) {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, '')}`
+
 
   return (
     <ChartContext.Provider value={{ config }}>
@@ -69,14 +80,17 @@ function ChartContainer({
   )
 }
 
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color,
   )
 
+
   if (!colorConfig.length) {
     return null
   }
+
 
   return (
     <style
@@ -102,7 +116,9 @@ ${colorConfig
   )
 }
 
+
 const ChartTooltip = RechartsPrimitive.Tooltip
+
 
 function ChartTooltipContent({
   active,
@@ -128,10 +144,12 @@ function ChartTooltipContent({
   }) {
   const { config } = useChart()
 
+
   const tooltipLabel = React.useMemo(() => {
     if (hideLabel || !payload?.length) {
       return null
     }
+
 
     const [item] = payload
     const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
@@ -141,6 +159,7 @@ function ChartTooltipContent({
         ? config[label as keyof typeof config]?.label || label
         : itemConfig?.label
 
+
     if (labelFormatter) {
       return (
         <div className={cn('font-medium', labelClassName)}>
@@ -149,9 +168,11 @@ function ChartTooltipContent({
       )
     }
 
+
     if (!value) {
       return null
     }
+
 
     return <div className={cn('font-medium', labelClassName)}>{value}</div>
   }, [
@@ -164,11 +185,14 @@ function ChartTooltipContent({
     labelKey,
   ])
 
+
   if (!active || !payload?.length) {
     return null
   }
 
+
   const nestLabel = payload.length === 1 && indicator !== 'dot'
+
 
   return (
     <div
@@ -183,6 +207,7 @@ function ChartTooltipContent({
           const key = `${nameKey || item.name || item.dataKey || 'value'}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
           const indicatorColor = color || item.payload.fill || item.color
+
 
           return (
             <div
@@ -248,7 +273,9 @@ function ChartTooltipContent({
   )
 }
 
+
 const ChartLegend = RechartsPrimitive.Legend
+
 
 function ChartLegendContent({
   className,
@@ -263,9 +290,11 @@ function ChartLegendContent({
   }) {
   const { config } = useChart()
 
+
   if (!payload?.length) {
     return null
   }
+
 
   return (
     <div
@@ -278,6 +307,7 @@ function ChartLegendContent({
       {payload.map((item) => {
         const key = `${nameKey || item.dataKey || 'value'}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
+
 
         return (
           <div
@@ -304,6 +334,7 @@ function ChartLegendContent({
   )
 }
 
+
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
   config: ChartConfig,
@@ -314,6 +345,7 @@ function getPayloadConfigFromPayload(
     return undefined
   }
 
+
   const payloadPayload =
     'payload' in payload &&
     typeof payload.payload === 'object' &&
@@ -321,7 +353,9 @@ function getPayloadConfigFromPayload(
       ? payload.payload
       : undefined
 
+
   let configLabelKey: string = key
+
 
   if (
     key in payload &&
@@ -338,10 +372,12 @@ function getPayloadConfigFromPayload(
     ] as string
   }
 
+
   return configLabelKey in config
     ? config[configLabelKey]
     : config[key as keyof typeof config]
 }
+
 
 export {
   ChartContainer,
@@ -351,3 +387,6 @@ export {
   ChartLegendContent,
   ChartStyle,
 }
+
+
+

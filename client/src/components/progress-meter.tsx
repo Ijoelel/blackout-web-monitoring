@@ -1,7 +1,9 @@
 "use client"
 
+
 import { pickStatus, statusClasses, type Status } from "@/lib/status"
 import { cn } from "@/lib/utils"
+
 
 type Props = {
   value: number
@@ -15,6 +17,7 @@ type Props = {
   unit?: string
   className?: string
 }
+
 
 export default function ProgressMeter({
   value,
@@ -31,6 +34,7 @@ export default function ProgressMeter({
   const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100))
   const status: Status = pickStatus(value, { warnAbove, critAbove, warnBelow, critBelow })
   const cls = statusClasses(status)
+
 
   return (
     <div className={cn("w-full", className)}>
@@ -55,3 +59,6 @@ export default function ProgressMeter({
     </div>
   )
 }
+
+
+

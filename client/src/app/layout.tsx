@@ -1,23 +1,31 @@
-// src/app/layout.tsx
 import type { Metadata } from 'next'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
+
 export const metadata: Metadata = {
-  title: 'Web Monitoring',
-  description: 'Monitoring kapal',
-  generator: 'Programer KTT',
+  title: 'web monitoring kapal',
+  description: 'Blackout Monitoring System',
+  generator: 'progamer A9',
 }
+
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="en">
-      <body>
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         {children}
+        <Analytics />
       </body>
     </html>
   )
 }
+
+
+

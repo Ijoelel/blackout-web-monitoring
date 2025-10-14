@@ -95,3 +95,5 @@ export function getGeneratorSnapshots() {
 
   return [toCard(1, m.generator_1), toCard(2, m.generator_2), toCard(3, m.generator_3), toCard(4, m.generator_4)]
 }
+
+

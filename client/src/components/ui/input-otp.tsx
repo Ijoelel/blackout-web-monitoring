@@ -1,10 +1,13 @@
 'use client'
 
+
 import * as React from 'react'
 import { OTPInput, OTPInputContext } from 'input-otp'
 import { MinusIcon } from 'lucide-react'
 
+
 import { cn } from '@/lib/utils'
+
 
 function InputOTP({
   className,
@@ -26,6 +29,7 @@ function InputOTP({
   )
 }
 
+
 function InputOTPGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
@@ -36,6 +40,7 @@ function InputOTPGroup({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+
 function InputOTPSlot({
   index,
   className,
@@ -45,6 +50,7 @@ function InputOTPSlot({
 }) {
   const inputOTPContext = React.useContext(OTPInputContext)
   const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {}
+
 
   return (
     <div
@@ -66,6 +72,7 @@ function InputOTPSlot({
   )
 }
 
+
 function InputOTPSeparator({ ...props }: React.ComponentProps<'div'>) {
   return (
     <div data-slot="input-otp-separator" role="separator" {...props}>
@@ -74,4 +81,8 @@ function InputOTPSeparator({ ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
+
+
+

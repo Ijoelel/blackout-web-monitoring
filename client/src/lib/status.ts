@@ -1,5 +1,6 @@
 export type Status = "ok" | "warn" | "crit"
 
+
 export function pickStatus(
   value: number,
   {
@@ -17,6 +18,7 @@ export function pickStatus(
   if (typeof warnBelow === "number" && value <= warnBelow) return "warn"
   return "ok"
 }
+
 
 export function statusClasses(status: Status): {
   bg: string
@@ -54,6 +56,7 @@ export function statusClasses(status: Status): {
   }
 }
 
+
 export function statusLabel(status: Status): string {
   switch (status) {
     case "crit":
@@ -64,3 +67,6 @@ export function statusLabel(status: Status): string {
       return "Normal"
   }
 }
+
+
+

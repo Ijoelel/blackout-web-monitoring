@@ -1,8 +1,10 @@
 "use client"
 
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { HistoryChart } from "./history-chart"
 import { cn } from "@/lib/utils"
+
 
 export type GeneratorSnapshot = {
   name: string
@@ -15,7 +17,9 @@ export type GeneratorSnapshot = {
   vibration_level_mm_s?: number
 }
 
+
 type Point = { t: string; v: number }
+
 
 export function GeneratorCard({
   snapshot,
@@ -26,11 +30,13 @@ export function GeneratorCard({
 }) {
   const isOffline = !snapshot.online
 
+
   const LOAD_HIGH = 2300
   const FREQ_LOW = 59.7
   const FREQ_HIGH = 60.3
   const TEMP_HIGH = 95
   const VIB_HIGH = 6
+
 
   const highFlags = {
     load: (snapshot.load_kw ?? 0) > LOAD_HIGH,
@@ -39,6 +45,7 @@ export function GeneratorCard({
     vib: (snapshot.vibration_level_mm_s ?? 0) > VIB_HIGH,
   }
   const anyHigh = Object.values(highFlags).some(Boolean)
+
 
   return (
     <Card className={cn(anyHigh ? "border-destructive" : undefined)}>
@@ -86,8 +93,12 @@ export function GeneratorCard({
           </div>
         </div>
 
+
         <HistoryChart title="Load (1 hour)" unit="kW" data={history.loadKw} threshold={LOAD_HIGH} />
       </CardContent>
     </Card>
   )
 }
+
+
+
