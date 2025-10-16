@@ -5,13 +5,10 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-
 BASE_TIMESTAMP = datetime(2025, 9, 15, 21, 30, tzinfo=timezone.utc)
-
 
 def _round(value: float, digits: int = 2) -> float:
     return float(np.round(value, digits))
-
 
 def _make_generator_payload(base_load: float, base_freq: float, t: int) -> Dict[str, float]:
     phase = t / 30
@@ -30,7 +27,6 @@ def _make_generator_payload(base_load: float, base_freq: float, t: int) -> Dict[
         "exhaust_gas_temperature_celsius": _round(exhaust_gas_temperature_celsius, 1),
         "vibration_level_mm_s": _round(vibration_level_mm_s, 2),
     }
-
 
 def generate_normal_data(t: int) -> Dict[str, object]:
     """Generate contextual ship power data following the new JSON structure."""
@@ -84,7 +80,6 @@ def generate_normal_data(t: int) -> Dict[str, object]:
 
     return data
 
-
 def maybe_anomaly(data: Dict[str, object]) -> Dict[str, object]:
     mutated = deepcopy(data)
 
@@ -125,7 +120,6 @@ def maybe_anomaly(data: Dict[str, object]) -> Dict[str, object]:
         )
 
     return mutated
-
 
 def flatten_for_model(data: Dict[str, object]) -> List[float]:
     distribution = data["distribution_features"]
