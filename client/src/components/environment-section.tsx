@@ -3,17 +3,17 @@
 import { Waves, Wind, Navigation, Compass } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import MetricCard from "@/components/metric-card"
-import { genHistory } from "@/lib/history"
-import { useLiveMetric } from "@/hooks/use-live-metric"
+import { useSocketData } from "@/hooks/use-socket-data"
 
 export default function EnvironmentSection() {
-  const waveHeight = useLiveMetric({ base: 2.5, jitter: 0.15, min: 2.0, max: 3.5 })
-  const windSpeed = useLiveMetric({ base: 25, jitter: 2, min: 20, max: 35 })
-  const seaCurrent = useLiveMetric({ base: 1.2, jitter: 0.1, min: 1.0, max: 1.5 })
+  const { environment } = useSocketData()
+  const waveHeight = environment.waveHeight ?? 2.5
+  const windSpeed = environment.windSpeed ?? 25
+  const seaCurrent = environment.seaCurrent ?? 1.2
 
-  const histWave = genHistory({ base: 2.5, jitter: 0.15, min: 0 })
-  const histWind = genHistory({ base: 25, jitter: 2, min: 0 })
-  const histCurrent = genHistory({ base: 1.2, jitter: 0.1, min: 0 })
+  const histWave = environment.waveHistory ?? []
+  const histWind = environment.windHistory ?? []
+  const histCurrent = environment.currentHistory ?? []
 
   const navigationStatus =
     waveHeight < 4 && windSpeed < 30 && seaCurrent < 2
@@ -50,7 +50,7 @@ export default function EnvironmentSection() {
             warnAbove={4}
             critAbove={6}
             historyData={histWave}
-            chartTitle="Tinggi Gelombang — 60 min"
+            chartTitle="Tinggi Gelombang — 1 jam terakhir"
             yDomain={[0, 10]}
           />
           <MetricCard
@@ -63,7 +63,7 @@ export default function EnvironmentSection() {
             warnAbove={30}
             critAbove={40}
             historyData={histWind}
-            chartTitle="Kecepatan Angin — 60 min"
+            chartTitle="Kecepatan Angin — 1 jam terakhir"
             yDomain={[0, 60]}
           />
           <MetricCard
@@ -76,7 +76,7 @@ export default function EnvironmentSection() {
             warnAbove={2}
             critAbove={3}
             historyData={histCurrent}
-            chartTitle="Arus Laut — 60 min"
+            chartTitle="Arus Laut — 1 jam terakhir"
             yDomain={[0, 5]}
           />
         </div>
@@ -111,3 +111,5 @@ export default function EnvironmentSection() {
     </Card>
   )
 }
+
+

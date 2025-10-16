@@ -1,14 +1,13 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { pickStatus, statusClasses, statusLabel, type Status } from "@/lib/status"
 import { cn } from "@/lib/utils"
 import HistoryChart from "@/components/history-chart"
-import { toLogs } from "@/lib/history"
+import { toLogs, type HistoryPoint } from "@/lib/history"
 
 type Props = {
   label: string
@@ -21,9 +20,10 @@ type Props = {
   critAbove?: number
   warnBelow?: number
   critBelow?: number
-  historyData: Array<{ time: number; value: number }>
+  historyData: HistoryPoint[]
   chartTitle: string
   yDomain?: [number, number]
+  defaultOpen?: boolean
 }
 
 export default function MetricCard({
@@ -40,8 +40,9 @@ export default function MetricCard({
   historyData,
   chartTitle,
   yDomain,
+  defaultOpen = false,
 }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100))
   const status: Status = pickStatus(value, { warnAbove, critAbove, warnBelow, critBelow })
   const cls = statusClasses(status)
@@ -109,7 +110,7 @@ export default function MetricCard({
 
             {/* Logs */}
             <div>
-              <h4 className="text-xs font-semibold text-muted-foreground mb-2">Log</h4>
+              <h4 className="text-xs font-semibold text-muted-foreground mb-2">Log — 1 jam terakhir</h4>
               <div className="bg-muted/30 rounded-md p-3">
                 <ul className="text-xs space-y-1 font-mono">
                   {toLogs(historyData, unit, 5).map((log, i) => (
@@ -126,3 +127,5 @@ export default function MetricCard({
     </Collapsible>
   )
 }
+
+

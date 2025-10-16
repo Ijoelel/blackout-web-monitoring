@@ -41,7 +41,7 @@ export default function HistoryChart({
   return (
     <Card className="border-0 shadow-none">
       <CardHeader className={cn("py-2 px-3 rounded-t-md", cls.bg)}>
-        <CardTitle className="text-sm font-medium text-white">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="pt-4 px-3 pb-2">
         <ChartContainer
@@ -106,3 +106,5 @@ export default function HistoryChart({
 }
 
 export { HistoryChart }
+
+
