@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
 import type { Server as HTTPServer } from "http"
 import type { Socket as NetSocket } from "net"
 import { Server as IOServer, type Socket as IOSocket } from "socket.io"
-
-type HistoryPoint = { t: number; v: number }
+import { HistoryPoint } from "@/lib/type"
 
 // Ship operation
 type ShipState = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Ship, CheckCircle, TrendingUp, Battery } from "lucide-react";
 import EngineSection from "@/components/engine-section";
@@ -8,26 +8,11 @@ import GeneratorsSection from "@/components/generators-section";
 import ElectricalSection from "@/components/electrical-section";
 import EnvironmentSection from "@/components/environment-section";
 import socket from "@/lib/socket";
+import { useSocketData } from "@/hooks/use-socket-data";
 
 export default function ShipMonitoringDashboard() {
     const [currentTime, setCurrentTime] = useState(new Date());
-    const [data, setData] = useState(null);
-
-    useEffect(() => {
-        socket.on("connect", () => {
-            console.log("connected");
-            console.log(socket.id);
-        });
-
-        socket.on("telemetry", (data) => {
-            console.log("telemetry", data);
-            setData(data);
-        });
-
-        socket.on("disconnect", () => {
-            console.log("disconnected");
-        });
-    });
+    const { data } = useSocketData();
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -85,7 +70,13 @@ export default function ShipMonitoringDashboard() {
                                         Status Kapal
                                     </p>
                                     <p className="text-2xl font-bold">
-                                        Operasional
+                                        {data?.data.mode === "startup"
+                                            ? "Startup"
+                                            : data?.data.mode === "stable"
+                                            ? "Stable"
+                                            : data?.data.mode === "high_load"
+                                            ? "High Load"
+                                            : "Bad Environment"}
                                     </p>
                                 </div>
                                 <CheckCircle className="h-12 w-12 text-emerald-200" />

@@ -88,7 +88,7 @@ export default function MetricCard({
         {/* Value Display */}
         <div className="text-right">
           <span className="text-2xl font-bold text-foreground tabular-nums">
-            {value.toFixed(1)} {unit}
+            {/* {value.toFixed(1)} {unit} */}
           </span>
         </div>
 
