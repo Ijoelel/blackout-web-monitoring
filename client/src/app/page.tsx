@@ -1,74 +1,26 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Ship, CheckCircle, TrendingUp, Battery } from "lucide-react";
+import AppShell from "@/components/layout/app-shell";
 import EngineSection from "@/components/engine-section";
 import GeneratorsSection from "@/components/generators-section";
 import ElectricalSection from "@/components/electrical-section";
 import EnvironmentSection from "@/components/environment-section";
-import socket from "@/lib/socket";
+import { Card, CardContent } from "@/components/ui/card";
 import { useSocketData } from "@/hooks/use-socket-data";
+import { Battery, CheckCircle, TrendingUp } from "lucide-react";
 
 export default function ShipMonitoringDashboard() {
-    const [currentTime, setCurrentTime] = useState(new Date());
     const { data } = useSocketData();
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-            {/* Header */}
-            <header className="bg-white border-b border-border shadow-sm">
-                <div className="container mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <Ship className="h-8 w-8 text-primary" />
-                                <div>
-                                    <h1 className="text-2xl font-bold text-foreground">
-                                        KM Arthawijaya Explorer
-                                    </h1>
-                                    <p className="text-sm text-muted-foreground">
-                                        Blackout Monitoring System
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-6">
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-foreground">
-                                    {currentTime.toLocaleDateString("id-ID", {
-                                        weekday: "long",
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                    })}
-                                </p>
-                                {/* <p className="text-lg font-mono font-bold text-primary">{currentTime.toLocaleTimeString("id-ID")}</p> */}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Dashboard */}
-            <main className="container mx-auto px-6 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    {/* Quick Status Cards */}
+        <AppShell>
+            <div className="container mx-auto px-6 py-6">
+                <div className="grid grid-cols-1 gap-6 pb-6 lg:grid-cols-3">
                     <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-emerald-100">
-                                        Status Kapal
-                                    </p>
+                                    <p className="text-emerald-100">Status Kapal</p>
                                     <p className="text-2xl font-bold">
                                         {data?.data.mode === "startup"
                                             ? "Startup"
@@ -89,9 +41,7 @@ export default function ShipMonitoringDashboard() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-blue-100">Kecepatan</p>
-                                    <p className="text-2xl font-bold">
-                                        18.5 knots
-                                    </p>
+                                    <p className="text-2xl font-bold">18.5 knots</p>
                                 </div>
                                 <TrendingUp className="h-12 w-12 text-blue-200" />
                             </div>
@@ -102,12 +52,8 @@ export default function ShipMonitoringDashboard() {
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-orange-100">
-                                        Konsumsi Bahan Bakar
-                                    </p>
-                                    <p className="text-2xl font-bold">
-                                        245 L/h
-                                    </p>
+                                    <p className="text-orange-100">Konsumsi Bahan Bakar</p>
+                                    <p className="text-2xl font-bold">245 L/h</p>
                                 </div>
                                 <Battery className="h-12 w-12 text-orange-200" />
                             </div>
@@ -115,20 +61,13 @@ export default function ShipMonitoringDashboard() {
                     </Card>
                 </div>
 
-                <div className="mb-6">
+                <div className="space-y-6">
                     <EngineSection />
-                </div>
-
-                <div className="mb-6">
                     <GeneratorsSection />
-                </div>
-
-                <div className="mb-6">
                     <ElectricalSection />
+                    <EnvironmentSection />
                 </div>
-
-                <EnvironmentSection />
-            </main>
-        </div>
+            </div>
+        </AppShell>
     );
 }

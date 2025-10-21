@@ -128,6 +128,39 @@
   body {
     @apply bg-background text-foreground;
   }
+  .leaflet-container {
+    font-family: inherit;
+  }
+  .ship-popup .leaflet-popup-content-wrapper {
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 45px -25px rgba(15, 23, 42, 0.35);
+    padding: 0.75rem 1rem;
+  }
+  .ship-popup .leaflet-popup-tip {
+    background: #fff;
+  }
+  .ship-popup-content h3 {
+    margin: 0 0 0.35rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgb(15 23 42);
+  }
+  .ship-popup-status {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: rgb(71 85 105);
+  }
+  .ship-popup-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: rgb(71 85 105);
+  }
+  .ship-popup-body strong {
+    color: rgb(15 23 42);
+    font-weight: 600;
+  }
 }
 
 
