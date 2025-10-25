@@ -6,15 +6,13 @@ import {
     CheckCircle,
     AlertTriangle,
     XCircle,
-    TrendingUp,
-    Fuel,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import MetricCard from "@/components/metric-card";
-import { useSocketData } from "@/hooks/use-socket-data";
 import { cn } from "@/lib/utils";
+import { useSocketData } from "@/hooks/use-socket-data";
+import BlackoutPrediction from "@/components/blackout-prediction"; 
 
-// simple color map for status badge
+// warna status badge
 function statusStyle(s?: "operational" | "warning" | "critical") {
     switch (s) {
         case "critical":
@@ -40,13 +38,7 @@ function statusStyle(s?: "operational" | "warning" | "critical") {
 
 export default function EngineSection() {
     const { data } = useSocketData();
-
-    const speed = 0;
-    const fuel = 0;
     const status = "operational";
-    const speedHist = [];
-    const fuelHist = [];
-
     const sStyle = useMemo(() => statusStyle(status), [status]);
     const SIcon = sStyle.Icon;
     const isNormal = status === "operational";
@@ -56,9 +48,21 @@ export default function EngineSection() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Settings className="h-5 w-5 text-emerald-600" />
-                    Operasi Kapal
+                    <p className="text-emerald-600">
+                                        Status Kapal
+                                    </p>
+                                    <p className="text-2xl font-bold">
+                                        {data?.data.mode === "startup"
+                                            ? "Startup"
+                                            : data?.data.mode === "stable"
+                                            ? "Stable"
+                                            : data?.data.mode === "high_load"
+                                            ? "High Load"
+                                            : "Bad Environment"}
+                                    </p>
                 </CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-4">
                 {/* Status Operasional */}
                 <div className="rounded-lg border p-4 bg-card/50 flex items-center justify-between">
@@ -88,38 +92,10 @@ export default function EngineSection() {
                     </div>
                 </div>
 
-                {/* Metrik Kecepatan & Konsumsi BBM */}
-                <div className="grid gap-4 md:grid-cols-2">
-                    <MetricCard
-                        label="Kecepatan"
-                        value={speed}
-                        unit="knots"
-                        icon={<TrendingUp className="h-4 w-4 text-blue-500" />}
-                        min={0}
-                        max={45}
-                        warnAbove={24}
-                        critAbove={30}
-                        historyData={speedHist}
-                        chartTitle="Kecepatan — 1 jam terakhir"
-                        yDomain={[0, 45]}
-                        defaultOpen
-                    />
-                    <MetricCard
-                        label="Konsumsi Bahan Bakar"
-                        value={fuel}
-                        unit="L/h"
-                        icon={<Fuel className="h-4 w-4 text-orange-500" />}
-                        min={0}
-                        max={600}
-                        warnAbove={320}
-                        critAbove={400}
-                        historyData={fuelHist}
-                        chartTitle="Konsumsi Bahan Bakar — 1 jam terakhir"
-                        yDomain={[0, 600]}
-                        defaultOpen
-                    />
-                </div>
+                {/* ⬇️ Prediksi Blackout disatukan di dalam layout */}
+                <BlackoutPrediction prediction={data?.prediction} />
 
+                {/* Status Operasional */}
                 <div
                     className={cn(
                         "rounded-lg p-4",

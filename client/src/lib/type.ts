@@ -102,3 +102,35 @@ export type HistoryPoint = {
     t: number; // epoch ms
     v: number; // value
 };
+
+export type TopContributor = {
+    name: string
+    contribution: number
+    percent: number
+};
+
+export type PredictionState = {
+    ready: boolean
+    score: number
+    threshold: number
+    blackout_prob: number
+    top_contributors: TopContributor[]
+    updatedAt?: number
+
+};
+
+// Next.js API Response typing so Socket.IO compiles cleanly in TS
+import type { NextApiResponse } from "next"
+import type { Server as HTTPServer } from "http"
+import type { Socket as NetSocket } from "net"
+import type { Server as IOServer } from "socket.io"
+
+
+export type NextApiResponseServerIO = NextApiResponse & {
+  socket?: NetSocket & {
+    server?: HTTPServer & {
+      io?: IOServer
+    }
+  }
+}
+

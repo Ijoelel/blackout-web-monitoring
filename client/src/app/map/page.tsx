@@ -16,13 +16,7 @@ import {
     ROUTE_CHECKPOINTS,
     ROUTE_PROGRESS,
 } from "@/components/map/route-data";
-import {
-    Compass,
-    MapPin,
-    Navigation,
-    Waves,
-    Wind,
-} from "lucide-react";
+import { Compass, MapPin, Navigation, Waves, Wind } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NullableNumber } from "@/lib/type";
 
@@ -83,14 +77,15 @@ export default function MapMonitoringPage() {
 
                 <div className="grid gap-6 lg:grid-cols-4">
                     <div className="space-y-6 lg:col-span-3">
-                        <Card className="h-[60vh] overflow-hidden lg:h-[70vh]">
+                        <Card className="h-[60vh] overflow-hidden lg:h-[70vh] px-4 pb-4">
                             <CardHeader className="flex flex-row items-start justify-between space-y-0">
                                 <div>
                                     <CardTitle className="text-lg font-semibold">
                                         Posisi Kapal Terkini
                                     </CardTitle>
                                     <CardDescription>
-                                        {activeCheckpoint.name} • pembaruan pukul {updatedTime} WIB
+                                        {activeCheckpoint.name} • pembaruan
+                                        pukul {updatedTime} WIB
                                     </CardDescription>
                                 </div>
                                 <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -98,7 +93,10 @@ export default function MapMonitoringPage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="h-full p-0">
-                                <ShipMap status={mode} environment={environment} />
+                                <ShipMap
+                                    status={mode}
+                                    environment={environment}
+                                />
                             </CardContent>
                         </Card>
 
@@ -113,7 +111,8 @@ export default function MapMonitoringPage() {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {ROUTE_CHECKPOINTS.map((checkpoint, index) => {
-                                    const isActive = index === ACTIVE_CHECKPOINT_INDEX;
+                                    const isActive =
+                                        index === ACTIVE_CHECKPOINT_INDEX;
                                     return (
                                         <div
                                             key={checkpoint.name}
@@ -166,7 +165,10 @@ export default function MapMonitoringPage() {
                                         Menuju {destination.name}
                                     </p>
                                 </div>
-                                <Progress value={ROUTE_PROGRESS} className="h-2" />
+                                <Progress
+                                    value={ROUTE_PROGRESS}
+                                    className="h-2"
+                                />
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>{ROUTE_CHECKPOINTS[0].name}</span>
                                     <span>{destination.name}</span>
@@ -190,7 +192,11 @@ export default function MapMonitoringPage() {
                                         Kecepatan angin
                                     </div>
                                     <span className="text-base font-semibold text-foreground">
-                                        {formatMetric(environment?.wind_speed_knots ?? null, "knots")}
+                                        {formatMetric(
+                                            environment?.wind_speed_knots ??
+                                                null,
+                                            "knots"
+                                        )}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -199,7 +205,11 @@ export default function MapMonitoringPage() {
                                         Tinggi gelombang
                                     </div>
                                     <span className="text-base font-semibold text-foreground">
-                                        {formatMetric(environment?.wave_height_meters ?? null, "m")}
+                                        {formatMetric(
+                                            environment?.wave_height_meters ??
+                                                null,
+                                            "m"
+                                        )}
                                     </span>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -208,7 +218,11 @@ export default function MapMonitoringPage() {
                                         Arus laut
                                     </div>
                                     <span className="text-base font-semibold text-foreground">
-                                        {formatMetric(environment?.ocean_current_speed_knots ?? null, "knots")}
+                                        {formatMetric(
+                                            environment?.ocean_current_speed_knots ??
+                                                null,
+                                            "knots"
+                                        )}
                                     </span>
                                 </div>
                             </CardContent>
@@ -220,12 +234,15 @@ export default function MapMonitoringPage() {
                                     Status Sistem
                                 </CardTitle>
                                 <CardDescription>
-                                    Ringkasan kondisi operasi pembangkit listrik kapal.
+                                    Ringkasan kondisi operasi pembangkit listrik
+                                    kapal.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div>
-                                    <p className="text-sm text-muted-foreground">Mode sistem</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Mode sistem
+                                    </p>
                                     <p className="text-xl font-semibold text-foreground">
                                         {statusLabel}
                                     </p>
@@ -240,7 +257,8 @@ export default function MapMonitoringPage() {
                                     </p>
                                 </div>
                                 <div className="rounded-lg border border-dashed border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
-                                    Data diperbarui secara otomatis melalui jaringan monitoring kapal.
+                                    Data diperbarui secara otomatis melalui
+                                    jaringan monitoring kapal.
                                 </div>
                             </CardContent>
                         </Card>
