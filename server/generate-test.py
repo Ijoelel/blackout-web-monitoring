@@ -1,20 +1,11 @@
-# server.py
-import asyncio, socketio, uvicorn, numpy as np
-from fastapi import FastAPI
-
-from lib.pred import LSTMAE_Evaluator
 from lib.generator1 import SimpleShipSim, row_to_nested_json
-
-# ---------- Socket.IO (ASGI) ----------
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
-app = FastAPI()
-app.mount("/", socketio.ASGIApp(sio))
-
-clients = set()
-producer_task = None
+from lib.pred import LSTMAE_Evaluator
+import numpy as np
+import sys
+import random
+import pandas as pd
 
 
-# ---------- Helper: flatten nested JSON -> dict flat sesuai feature_cols ----------
 def flatten_nested_for_model(doc: dict, feature_cols: list[str]) -> dict:
     """
     Mengambil JSON bertingkat dari generator dan mengubahnya menjadi dict flat
@@ -103,70 +94,58 @@ def data_check(flat_dict:dict, nested:dict, model:LSTMAE_Evaluator):
 
     return flat_dict
 
-async def produce_loop():
-    """Generate (nested) -> flatten -> predict -> emit setiap 1s."""
+def loading(t, seq_len):
+    print(f"[{"▋"*(round((t/seq_len) * 100))}{" "*(100 - round((t/seq_len) * 100))}] {t/seq_len*100:.2f}%")
+    sys.stdout.write("\033[F")
+
+def inject_anomaly(flat_dict, anomaly_type, anomaly_value):
+    flat_dict[anomaly_type] = anomaly_value
+    return flat_dict
+
+def averaging(buffer_list, column_name):
+    data_evaluated = [i[column_name] for i in buffer_list[(len(buffer_list) - 60):]]
+    return sum(data_evaluated) / len(data_evaluated)
+
+    
+
+for i in range(100):
+    random_stop = random.randint(500, 1000)
+
     pred = LSTMAE_Evaluator(artifacts_dir="artifacts", prob_alpha=0.25, topk=5)
-    data_generator = SimpleShipSim(seed=346)
+    random_anomaly_type = random.randint(0, len(pred.feature_cols) - 1)
+
+    data_generator = SimpleShipSim(seed=random_stop)
+    buffer = []
+    res = {}
 
     t = 0
-    try:
-        while True:
-            data = data_generator.step()
-            nested = row_to_nested_json(data)
-            # nested = maybe_anomaly(nested)  # boleh dilepas jika tak ingin injeksi anomaly random
+    while True:
+        data = data_generator.step()
+        nested = row_to_nested_json(data)
 
-            # flatten sesuai feature_cols yang dipakai model
-            flat_dict = flatten_nested_for_model(nested, pred.feature_cols)
-            # --- Map 'mode' -> 'mode_code' jika model memakainya ---
-            
-            eval_data = data_check(flat_dict, nested, pred)
+        flat_dict = flatten_nested_for_model(nested, pred.feature_cols)
 
-            # --- Vectorize (urutan sesuai feature_cols) dan evaluasi ---
-            try:
-                # vec = pred.vectorize(flat_dict)         # (D,) float32
-                out = pred.push_sample_and_eval(eval_data)        # {ready, score, threshold, blackout_prob, consecutive_above, top_contributors}
-            except Exception as e:
-                # kirim error ke client agar gampang di-debug
-                await sio.emit("telemetry_error", {"error": str(e)})
-                # dan skip satu iterasi (jangan hard-crash loop)
-                await asyncio.sleep(1.0)
-                t += 1
-                continue
+        if len(buffer) < 60:
+            buffer.append(flat_dict)
+        else:
+            buffer.remove(buffer[0])
+            buffer.append(flat_dict)
+        
+        # inject anomaly
 
-            # --- Emit ke client: nested JSON + hasil prediksi ---
-            print(t+1)
-            payload = {
-                "data": nested,       # nested JSON asli
-                "prediction": out,    # hasil AE (tanpa is_anomaly), ada blackout_prob & top_contributors
-            }
-            await sio.emit("telemetry", payload)
+        eval_data = data_check(flat_dict, nested, pred)
+        res = pred.push_sample_and_eval(eval_data)
+        loading(t+1, random_stop)
 
-            await asyncio.sleep(1.0)
-            t += 1
-    except asyncio.CancelledError:
-        pass
+        t += 1
+        if t == random_stop:
+            break
+    
+    buffer_df = pd.DataFrame(buffer)
+    buffer_df.to_excel(f"buffer_data/buffer_data{i+1}.xlsx")
 
-
-@sio.event
-async def connect(sid, environ):
-    global producer_task
-    clients.add(sid)
-    print("Client connected:", sid, " total:", len(clients))
-    await sio.emit("server_info", {"msg": "ship AE online"}, to=sid)
-
-    if producer_task is None or producer_task.done():
-        producer_task = asyncio.create_task(produce_loop())
-        print("Producer loop started.")
-
-@sio.event
-async def disconnect(sid):
-    global producer_task
-    clients.discard(sid)
-    print("Client disconnected:", sid, " total:", len(clients))
-    if not clients and producer_task and not producer_task.done():
-        producer_task.cancel()
-        print("Producer loop stopped (no clients).")
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print(f"\nresult -> Result Score          : {res.get('score')}")
+    print(f"          Blackout Probability    : {res.get('blackout_prob')}")
+    print(f"          Top Contributors Average: ")
+    for i in range(5):    
+        print(f"              {res.get('top_contributors')[i].get('name')}                      : {averaging(buffer, res.get('top_contributors')[i].get('name'))}")

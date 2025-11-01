@@ -238,8 +238,6 @@ class LSTMAE_Evaluator:
         vec = self.vectorize(flat_sample)               # (D,)
         self.buf.append(vec)
 
-        print(len(self.buf))
-
         if len(self.buf) < self.seq_len:
             return {
                 "ready": False,
@@ -266,6 +264,8 @@ class LSTMAE_Evaluator:
             "top_contributors": top,
         }
 
+    def getBuffer(self):
+        return self.buf
 # class AnomalyPredictor:
 #     def __init__(self, artifacts_dir="artifacts", device=None, smoothing_k=3,
 #                  prob_alpha=0.25, topk=5):

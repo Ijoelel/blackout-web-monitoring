@@ -27,7 +27,7 @@ export default function ElectricalSection() {
         // Build new arrays without mutating previous state
         setVoltageHist((prev) => {
             let next = prev;
-            const pt = pickMetric(msb, "msb_busbar_voltage_v", isoTs); // -> { t, v }
+            const pt = pickMetric(msb, "msb_busbar_voltage_v" as never, isoTs); // -> { t, v }
             next = appendCapped(next ?? [], pt, 3600);
 
             return next;
@@ -35,7 +35,11 @@ export default function ElectricalSection() {
 
         setPowerHist((prev) => {
             let next = prev;
-            const pt = pickMetric(msb, "frequency_hz", isoTs);
+            const pt = pickMetric(
+                msb,
+                "msb_total_active_power_kw" as never,
+                isoTs
+            );
             next = appendCapped(next ?? [], pt, 3600);
             return next;
         });
@@ -57,12 +61,11 @@ export default function ElectricalSection() {
                         value={voltage as number}
                         unit="V"
                         icon={<Battery className="h-4 w-4 text-green-500" />}
-                        min={390}
-                        max={410}
+                        max={750}
                         warnBelow={380}
-                        critBelow={360}
-                        warnAbove={420}
-                        critAbove={440}
+                        critBelow={300}
+                        warnAbove={600}
+                        critAbove={700}
                         historyData={voltageHist}
                         chartTitle="Tegangan — 1 jam terakhir"
                         yDomain={[350, 450]}
@@ -72,10 +75,16 @@ export default function ElectricalSection() {
                         value={power as number}
                         unit="kW"
                         icon={<Zap className="h-4 w-4 text-blue-500" />}
-                        min={70}
-                        max={90}
-                        warnAbove={100}
-                        critAbove={120}
+                        min={0}
+                        max={
+                            (data?.data.num_generators_online as number) * 1200
+                        }
+                        warnAbove={
+                            (data?.data.num_generators_online as number) * 1000
+                        }
+                        critAbove={
+                            (data?.data.num_generators_online as number) * 1100
+                        }
                         historyData={powerHist}
                         chartTitle="Daya — 1 jam terakhir"
                         yDomain={[0, 150]}
