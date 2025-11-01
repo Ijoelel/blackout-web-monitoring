@@ -7,28 +7,16 @@ export type RouteCheckpoint = {
 
 export const ROUTE_CHECKPOINTS: RouteCheckpoint[] = [
     {
-        name: "Pelabuhan Tanjung Priok",
-        description: "Jakarta, titik keberangkatan utama",
-        coords: [-6.121435, 106.774124],
+        name: "Pelabuhan Ketapang",
+        description: "Titik berangkat kapal",
+        coords: [-8.1445988, 114.397147],
         eta: "00:00",
     },
     {
-        name: "Selat Karimata",
-        description: "Perairan Kalimantan Barat",
-        coords: [-2.687, 108.997],
-        eta: "+18 jam",
-    },
-    {
-        name: "Laut Natuna Utara",
-        description: "Zona operasional utama saat ini",
-        coords: [1.289, 109.03],
-        eta: "+32 jam",
-    },
-    {
-        name: "Pelabuhan Tanjung Balai Karimun",
-        description: "Kepulauan Riau, tujuan akhir",
-        coords: [0.999, 103.403],
-        eta: "+48 jam",
+        name: "Pelabuhan Gilimanuk",
+        description: "Titik berhenti kapal",
+        coords: [-8.1638021, 114.4367777],
+        eta: "+45 menit",
     },
 ];
 
